@@ -2,14 +2,20 @@ use num_bigint::{BigUint, BigInt, ToBigInt};
 use num_integer::Integer;
 use num_traits::{Zero, One};
 
-/// Calculates the values to represent `n`  as the product of a power of 2 and an odd number.
+/// Calculates the values needed to represent `n` as the product of a power of 2 and an odd number.
 ///
 /// # Examples
 ///
 /// ```
-/// assert_eq!(as_power_of_two_and_odd(&BigUint::from(256usize)), (8, BigUint::from(1usize)));
-/// assert_eq!(as_power_of_two_and_odd(&BigUint::from(137usize)), (0, BigUint::from(137usize)));
-/// assert_eq!(as_power_of_two_and_odd(&BigUint::from(1_1776usize)), (9, BigUint::from(23usize)));
+/// # extern crate num_bigint;
+/// # fn main() {
+/// use num_bigint::BigUint;
+/// use probabilistic_pubkey::number;
+/// 
+/// assert_eq!(number::as_power_of_two_and_odd(&BigUint::from(256usize)), (8, BigUint::from(1usize)));
+/// assert_eq!(number::as_power_of_two_and_odd(&BigUint::from(137usize)), (0, BigUint::from(137usize)));
+/// assert_eq!(number::as_power_of_two_and_odd(&BigUint::from(1_1776usize)), (9, BigUint::from(23usize)));
+/// # }
 /// ```
 pub fn as_power_of_two_and_odd(n: &BigUint) -> (usize, BigUint) {
     let zero = BigUint::zero();
@@ -39,7 +45,9 @@ pub fn as_power_of_two_and_odd(n: &BigUint) -> (usize, BigUint) {
 ///
 /// # Examples
 ///
-/// ```
+/// ```rust,ignore
+/// use num_bigint::BigUint;
+/// 
 /// assert_eq!(is_power_of_two(&BigUint::from(256usize)), true);
 /// assert_eq!(is_power_of_two(&BigUint::from(37usize)), false);
 /// ```
@@ -47,11 +55,7 @@ fn is_power_of_two(n: &BigUint) -> bool {
     (!n.is_zero()) && (n & (n - BigUint::one())).is_zero()
 }
 
-/// Calculates integers `x` and `y` such that `a * x + b * y = d`, where `d = gcd(a, b)`.
-/// 
-/// # Assumptions
-/// 
-/// `a ≥ b`.
+/// Calculates integers `x` and `y` such that `ax + by = d`, where `d = gcd(a, b)`.
 /// 
 /// # Reference
 /// 
@@ -60,11 +64,18 @@ fn is_power_of_two(n: &BigUint) -> bool {
 /// # Examples
 ///
 /// ```
-/// let a = BigUint::from(23usize);
+/// # extern crate num_bigint;
+/// # fn main() {
+/// use num_bigint::{BigUint, BigInt};
+/// use probabilistic_pubkey::number;
+/// 
+/// let a = BigUint::from(73usize);
 /// let b = BigUint::from(56usize);
-/// let x = BigInt::from(-17isize);
-/// let y = BigInt::from(7isize);
-/// assert_eq!(extended_euclidean_algorithm(&a, &b), Some((x, y)));
+/// let x = BigInt::from(-23isize);
+/// let y = BigInt::from(30isize);
+/// 
+/// assert_eq!(number::extended_euclidean_algorithm(&a, &b), Some((x, y)));
+/// # }
 /// ```
 pub fn extended_euclidean_algorithm(a: &BigUint, b: &BigUint) -> Option<(BigInt, BigInt)> {
     let zero = BigInt::zero();
@@ -116,7 +127,6 @@ pub enum JacobiSymbol {
     One = 1
 }
 
-
 /// Jacobi symbol computation. Same as Legendre symbol if `n` is prime.
 /// 
 /// # Assumptions
@@ -130,9 +140,16 @@ pub enum JacobiSymbol {
 /// # Examples
 ///
 /// ```
+/// # extern crate num_bigint;
+/// # fn main() {
+/// use num_bigint::BigUint;
+/// use probabilistic_pubkey::number;
+/// 
 /// let a = BigUint::from(256usize);
 /// let n = BigUint::from(4211usize);
-/// assert_eq!(jacobi_symbol(&a, &n), JacobiSymbol::One);
+/// 
+/// assert_eq!(number::jacobi_symbol(&a, &n), number::JacobiSymbol::One);
+/// # }
 /// ```
 pub fn jacobi_symbol(a: &BigUint, n: &BigUint) -> JacobiSymbol {
     fn calculate(a: &BigUint, n: &BigUint) -> i8 {
@@ -164,7 +181,7 @@ pub fn jacobi_symbol(a: &BigUint, n: &BigUint) -> JacobiSymbol {
             if y == three && z == three {
                 s = -s;
             } 
-            
+             
             let n1 = n.mod_floor(&a1);
             if a1.is_one() {
                 s
@@ -183,10 +200,15 @@ pub fn jacobi_symbol(a: &BigUint, n: &BigUint) -> JacobiSymbol {
 }
  
 /// Finds solution to the the simultaneous congruences in the Chinese remainder theorem.
+///
+/// # Arguments
+/// 
+/// * `ans` - list of tuples with values of `a` and `n` for each congruence in the Chinese remainder theorem.
 /// 
 /// # Assumptions
 /// 
-/// `n` is an odd integer `≥ 3` and `0 ≤ a < n`.
+/// Each `n` is an odd integer `≥ 3` and each `a` satisfies that `0 ≤ a < n`.
+/// All values of `n` are pairwise relatively prime.
 /// 
 /// # Reference
 /// 
@@ -195,12 +217,23 @@ pub fn jacobi_symbol(a: &BigUint, n: &BigUint) -> JacobiSymbol {
 /// # Examples
 ///
 /// ```
+/// # extern crate num_bigint;
+/// # fn main() {
+/// use num_bigint::BigUint;
+/// use probabilistic_pubkey::number;
+/// 
 /// let a1 = BigUint::from(128usize);
 /// let n1 = BigUint::from(3253usize);
 /// let a2 = BigUint::from(256usize);
 /// let n2 = BigUint::from(4211usize);
-/// assert_eq!(gauss_algorithm_for_crt(&[(&a1, &n1), (&a2, &n2)]), Some(BigUint::from(2173132usize)));
+/// 
+/// assert_eq!(number::gauss_algorithm_for_crt(&[(&a1, &n1), (&a2, &n2)]), Some(BigUint::from(2173132usize)));
+/// # }
 /// ```
+/// 
+/// # Panics
+/// 
+/// Panics if any value of `n` is not pairwise relatively prime with the others.
 pub fn gauss_algorithm_for_crt(ans: &[(&BigUint, &BigUint)]) -> Option<BigUint> {
     let mut result = BigUint::zero();
     let n: BigUint = ans.iter().map(|item| item.1).product();
@@ -218,6 +251,7 @@ pub fn gauss_algorithm_for_crt(ans: &[(&BigUint, &BigUint)]) -> Option<BigUint> 
 }
 
 /// Calculation of multiplicative inverses in ℤn.
+/// The multiplicative inverse of `a mod n` is an integer `x` of ℤn such that `ax ≡ 1 (mod n)`.
 /// 
 /// # Assumptions
 /// 
@@ -229,9 +263,12 @@ pub fn gauss_algorithm_for_crt(ans: &[(&BigUint, &BigUint)]) -> Option<BigUint> 
 ///
 /// # Examples
 ///
-/// ```
+/// ```rust,ignore
+/// use num_bigint::BigUint;
+/// 
 /// let a = BigUint::from(256usize);
-/// let n = BigUint::from(4211usize); 
+/// let n = BigUint::from(4211usize);
+/// 
 /// assert_eq!(mod_inv(&a, &n), Some(BigUint::from(1135usize)));
 /// ```
 fn mod_inv(a: &BigUint, n: &BigUint) -> Option<BigUint> {
@@ -246,11 +283,11 @@ fn mod_inv(a: &BigUint, n: &BigUint) -> Option<BigUint> {
         None
     }
     else {
-        let (_, y) = extended_euclidean_algorithm(n, a)?;
-        if y < zero {
-            (y + n.to_bigint()?).to_biguint()
+        let (x, _) = extended_euclidean_algorithm(a, n)?;
+        if x < zero {
+            (x + n.to_bigint()?).to_biguint()
         } else {
-            y.to_biguint()
+            x.to_biguint()
         }        
     }
 }
@@ -262,10 +299,10 @@ mod test {
     use primal;
     use proptest::prelude::*;
 
-    fn strategy_for_prime_and_integer(upper_bound: usize) -> impl Strategy<Value = (usize, usize)> {
+    fn strategy_for_integer_and_prime(lower_bound: usize, upper_bound: usize) -> impl Strategy<Value = (usize, usize)> {
         let sieve = primal::Sieve::new(upper_bound);
-        (3..upper_bound).prop_filter("is_prime", move |&n| sieve.is_prime(n))
-                        .prop_perturb(|n, mut rng| (rng.gen_range(0, n), n))
+        (lower_bound..upper_bound).prop_filter("is_prime", move |&n| sieve.is_prime(n))
+                                  .prop_perturb(|n, mut rng| (rng.gen_range(0, n), n))
     }
 
     proptest! {
@@ -282,25 +319,20 @@ mod test {
 
         #[test]
         fn test_extended_euclidean_algorithm(n1 in any::<usize>(), n2 in any::<usize>()) {
-            // a ≥ b
-            let (a, b) = if n2 < n1 {
-                (BigUint::from(n1), BigUint::from(n2))
-            } else {
-                (BigUint::from(n2), BigUint::from(n1))
-            };
+            let a = BigUint::from(n1);
+            let b = BigUint::from(n2);
 
             match extended_euclidean_algorithm(&a, &b) {
                 Some((x, y)) => {
                     let d = a.gcd(&b);
                     prop_assert_eq!(a.to_bigint().unwrap() * x + b.to_bigint().unwrap() * y, d.to_bigint().unwrap());              
                 },                    
-                None => prop_assert_eq!(true, false)
-            };
-            
+                None => prop_assert_eq!(false, true)
+            }
         } 
 
         #[test]
-        fn test_jacobi_symbol((a, n) in strategy_for_prime_and_integer(10_000)) {
+        fn test_jacobi_symbol((a, n) in strategy_for_integer_and_prime(3, 10_000)) {
             // Check if we can find an integer 1 < b < n such that b² ≡ a mod n
             fn is_quadratic_residue_module(a: usize, n: usize) -> bool {
                 let mut b = 1usize;
@@ -321,8 +353,8 @@ mod test {
 
         #[test]
         fn test_gauss_algorithm_for_crt(
-            (_a1, _n1) in strategy_for_prime_and_integer(10_000),
-            (_a2, _n2) in strategy_for_prime_and_integer(10_000)
+            (_a1, _n1) in strategy_for_integer_and_prime(1_000, 10_000),
+            (_a2, _n2) in strategy_for_integer_and_prime(11_000, 20_000)
         ) {
             let a1 = BigUint::from(_a1);
             let n1 = BigUint::from(_n1);
@@ -335,12 +367,12 @@ mod test {
                     prop_assert_eq!(x.mod_floor(&n1), a1);
                     prop_assert_eq!(x.mod_floor(&n2), a2)
                 }
-                None => prop_assert_eq!(true, false)
+                None => prop_assert_eq!(false, true)
             }                                  
         }
 
         #[test]
-        fn test_mod_inv((_a, _n) in strategy_for_prime_and_integer(10_000)) {
+        fn test_mod_inv((_a, _n) in strategy_for_integer_and_prime(3, 10_000)) {
             let one = BigUint::one();
             let a = BigUint::from(_a);
             let n = BigUint::from(_n);
@@ -351,11 +383,11 @@ mod test {
             } else {
                 match mod_inv(&a, &n) {
                     Some(x) => {
-                        // multiplicative inverse x satisfies that n divides a*x - 1 
+                        // multiplicative inverse x satisfies that n divides ax - 1 
                         let y = a * x - one;
                         prop_assert_eq!(y.is_multiple_of(&n), true)
                     },
-                    None => prop_assert_eq!(true, false)
+                    None => prop_assert_eq!(false, true)
                 }
             }
         }

@@ -5,6 +5,7 @@ authors = ["Carlos Rodriguez-Vega <crodveg@yahoo.es>"]
 edition = "2018"
 
 [dependencies]
+bitvec = "0.10.0"
 failure = "0.1.5"
 num-integer = "0.1"
 num-traits = "0.2"

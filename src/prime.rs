@@ -2,7 +2,7 @@ use crate::number;
 
 use num_bigint::{BigUint, RandBigInt};
 use num_integer::Integer;
-use num_traits::One;
+use num_traits::{One, ToPrimitive};
 use rand::thread_rng;
 
 /// Returns `true` if the input unsigned integer is probably prime.
@@ -10,18 +10,28 @@ use rand::thread_rng;
 /// # Examples
 ///
 /// ```
-/// assert_eq!(is_probably_prime(&BigUint::from(128usize)), false);
-/// assert_eq!(is_probably_prime(&BigUint::from(2969usize)), true);
+/// # extern crate num_bigint;
+/// # fn main() {
+/// use num_bigint::BigUint;
+/// use probabilistic_pubkey::prime;
+/// 
+/// assert_eq!(prime::is_probably_prime(&BigUint::from(128usize)), false);
+/// assert_eq!(prime::is_probably_prime(&BigUint::from(2969usize)), true);
+/// # }
 /// ```
 pub fn is_probably_prime(n: &BigUint) -> bool {
-    if is_multiple_of_prime_under_3000(n) {
-        false
-    } else {
-        if fermat_primality_test(50usize, n) {
-            miller_rabin_primality_test(30usize, &n)
-        } else {
-            false
-        }
+    match n.to_usize() {
+        Some(_n) if _n < 3000 => PRIMES_UNDER_3000.contains(&_n),
+        _ =>
+            if is_multiple_of_prime_under_3000(n) {
+                false
+            } else {
+                if fermat_primality_test(50usize, n) {
+                    miller_rabin_primality_test(30usize, &n)
+                } else {
+                    false
+                }
+            }    
     }
 }
 
@@ -29,7 +39,7 @@ pub fn is_probably_prime(n: &BigUint) -> bool {
 ///
 /// # Examples
 ///
-/// ```
+/// ```rust,ignore
 /// assert_eq!(is_multiple_of_prime_under_3000(&BigUint::from(2554usize)), true);
 /// assert_eq!(is_multiple_of_prime_under_3000(&BigUint::from(5003usize)), false);
 /// ```
@@ -53,10 +63,14 @@ fn is_multiple_of_prime_under_3000(n: &BigUint) -> bool {
 ///
 /// # Examples
 ///
-/// ```
+/// ```rust,ignore
 /// assert_eq!(fermat_primality_test(10, &BigUint::from(6_700_417usize)), true);
 /// assert_eq!(fermat_primality_test(10, &BigUint::from(6_700_419usize)), false);
 /// ```
+/// 
+/// # Panics
+/// 
+/// Panics if `n` is an even integer or `< 2`. 
 fn fermat_primality_test(iterations: usize, n: &BigUint) -> bool {
     let mut rng = thread_rng();
 
@@ -86,10 +100,14 @@ fn fermat_primality_test(iterations: usize, n: &BigUint) -> bool {
 ///
 /// # Examples
 ///
-/// ```
+/// ```rust,ignore
 /// assert_eq!(miller_rabin_primality_test(10, &BigUint::from(6_700_417usize)), true);
 /// assert_eq!(miller_rabin_primality_test(10, &BigUint::from(6_700_419usize)), false);
-/// ``` 
+/// ```
+/// 
+/// # Panics
+/// 
+/// Panics if `n` is an even integer or `< 2`. 
 fn miller_rabin_primality_test(iterations: usize, n: &BigUint) -> bool {
     let mut rng = thread_rng();
 
@@ -126,8 +144,11 @@ fn miller_rabin_primality_test(iterations: usize, n: &BigUint) -> bool {
 ///
 /// # Assumptions
 /// 
-/// `bit_size > 0`.
+/// `bit_size > 1`.
 /// 
+/// # Panics
+/// 
+/// Panics if `bit_size < 2`.
 pub fn generate_prime(bit_size: usize) -> BigUint {
     let mut n = generate_random_number(bit_size);
     let two = BigUint::from(2usize);
@@ -143,12 +164,15 @@ pub fn generate_prime(bit_size: usize) -> BigUint {
     n
 }
 
-/// Generates a random number of the given bit size.
+/// Generates a random number of the given bit size with the two most significant bits set to 1.
 ///
 /// # Assumptions
 /// 
-/// `bit_size > 0`.
+/// `bit_size > 1`.
 /// 
+/// # Panics
+/// 
+/// Panics if `bit_size < 2`.
 fn generate_random_number(bit_size: usize) -> BigUint {
     let mut rng = thread_rng();
 
@@ -213,7 +237,8 @@ mod test {
 
     // #[test] 
     // fn test_test() {
-    //     assert_eq!(is_probably_prime(&BigUint::from(2969usize)), true)
+    //     generate_prime(2usize);
+    //     assert_eq!(true, true)
     // }
 
     fn strategy_for_odd_integer(upper_bound: usize) -> impl Strategy<Value = (usize, bool)> {
