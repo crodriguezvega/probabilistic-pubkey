@@ -1,6 +1,6 @@
 //! # Probabilistic publick-key cryptography
 //!
-//! `probabilistic_pubkey` consists of implementations for the Goldwasser-Micali
+//! `probabilisticpubkey` consists of implementations for the Goldwasser-Micali
 //! and Blum-Goldwasser probabilistic public-key systems. 
 
 extern crate bitvec;
@@ -18,9 +18,15 @@ extern crate primal;
 #[macro_use]
 extern crate proptest;
 
+/// Number theoric functions.
 pub mod number;
+/// Prime generation and primality testing functions.
 pub mod prime;
+/// Errors during key generation. 
 pub mod errors;
+/// Generic traits for operations on keys.
 pub mod key;
+/// Goldwasser-Micali probabilistic public-key scheme.
 pub mod goldwasser_micali;
+/// Blum-Goldwasser probabilistic public-key scheme.
 pub mod blum_goldwasser;

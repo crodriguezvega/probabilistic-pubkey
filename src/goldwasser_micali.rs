@@ -10,12 +10,14 @@ use num_traits::One;
 use rand::thread_rng;
 use std::ops::Div;
 
+/// Represents the public key of the Goldwasser-Micali scheme.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GoldwasserMicaliPublicKey {
     n: BigUint,
     y: BigUint
 }
 
+/// Represents the private key of the Goldwasser-Micali scheme.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GoldwasserMicaliPrivateKey {
     p: BigUint,
@@ -33,6 +35,15 @@ impl GoldwasserMicaliPublicKey {
 }
 
 impl PublicKey for GoldwasserMicaliPublicKey {
+    /// Encryption algorithm.
+    /// 
+    /// # Arguments
+    ///
+    /// * `plaintext` - Plaintext to encrypt.
+    /// 
+    /// # Reference
+    /// 
+    /// See algorithm 8.51 in "Handbook of Applied Cryptography" by Alfred J. Menezes et al.
     fn encrypt(&self, plaintext: &[u8]) -> Vec<BigUint> {
         let one = BigUint::one();
         let two = BigUint::from(2usize);
@@ -66,6 +77,15 @@ impl GoldwasserMicaliPrivateKey {
 }
 
 impl PrivateKey for GoldwasserMicaliPrivateKey {
+    /// Decryption algorithm.
+    /// 
+    /// # Arguments
+    ///
+    /// * `ciphertext` - Ciphertext to decrypt.
+    /// 
+    /// # Reference
+    /// 
+    /// See algorithm 8.51 in "Handbook of Applied Cryptography" by Alfred J. Menezes et al.
     fn decrypt(&self, ciphertext: &[BigUint]) -> Vec<u8> {
         let mut bits: BitVec<BigEndian, u8> = BitVec::with_capacity(ciphertext.len());
         
@@ -81,24 +101,47 @@ impl PrivateKey for GoldwasserMicaliPrivateKey {
     }
 }
 
+/// Generates public and private keys.
+/// 
+/// # Arguments
+///
+/// * `byte_size` - Size of public key in bytes.
+/// 
+/// # Reference
+/// 
+/// See algorithm 8.50 in "Handbook of Applied Cryptography" by Alfred J. Menezes et al.
 pub fn generate_keys(byte_size: usize) -> Result<(GoldwasserMicaliPublicKey, GoldwasserMicaliPrivateKey), Error> {
-    let p_bits = 8 * byte_size.div(2);
-    let q_bits = 8 * (byte_size - byte_size.div(2));
+    if byte_size < 2 {
+        Err(Error::LengthPublicKeyModulus)
+    } else {
+        let p_bits = 8 * byte_size.div(2);
+        let q_bits = 8 * (byte_size - byte_size.div(2));
 
-    let (p, q) = generate_primes(p_bits, q_bits);
+        let (p, q) = generate_primes(p_bits, q_bits);
 
-    match find_pseudosquare_mod(&p, &q) {
-        None => Err(Error::CouldNotGeneratePublicKey),
-        Some(y) => {
-            let n = &p * &q;
-            let public_key = GoldwasserMicaliPublicKey { n, y };
-            let private_key = GoldwasserMicaliPrivateKey { p, q };
+        match find_pseudosquare_mod(&p, &q) {
+            None => Err(Error::CouldNotGenerateKeys),
+            Some(y) => {
+                let n = &p * &q;
+                let public_key = GoldwasserMicaliPublicKey { n, y };
+                let private_key = GoldwasserMicaliPrivateKey { p, q };
 
-            Ok((public_key, private_key))
+                Ok((public_key, private_key))
+            }
         }
-    }   
+    }
 }
 
+/// Generates primes `p` and `q` for private/public key generation.
+/// 
+/// # Arguments
+///
+/// * `p_bits` - Number of bits for prime `p`.
+/// * `q_bits` - Number of bits for prime `q`.
+/// 
+/// # Reference
+/// 
+/// See algorithm 8.50 in "Handbook of Applied Cryptography" by Alfred J. Menezes et al.
 fn generate_primes(p_bits: usize, q_bits: usize) -> (BigUint, BigUint) {
     let p = prime::generate_prime(p_bits);
     let mut q = prime::generate_prime(q_bits);
@@ -110,6 +153,16 @@ fn generate_primes(p_bits: usize, q_bits: usize) -> (BigUint, BigUint) {
     (p, q)
 }
 
+/// Finds a pseudosquare modulo `p * q`.
+/// 
+/// # Arguments
+///
+/// * `p` - Prime `p`.
+/// * `q` - Prime `q`.
+/// 
+/// # Reference
+/// 
+/// See remark 8.54 in "Handbook of Applied Cryptography" by Alfred J. Menezes et al.
 fn find_pseudosquare_mod(p: &BigUint, q: &BigUint) -> Option<BigUint> {
     let a = find_quadratic_nonresidue_mod(&p);
     let b = find_quadratic_nonresidue_mod(&q);

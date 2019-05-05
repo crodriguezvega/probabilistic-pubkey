@@ -10,11 +10,13 @@ use num_traits::One;
 use rand::thread_rng;
 use std::ops::{Div, BitXor};
 
+/// Represents the public key of the Blum-Goldwasser scheme.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BlumGoldwasserPublicKey {
     n: BigUint
 }
 
+/// Represents the private key of the Blum-Goldwasser scheme.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BlumGoldwasserPrivateKey {
     p: BigUint,
@@ -30,6 +32,15 @@ impl BlumGoldwasserPublicKey {
 }
 
 impl PublicKey for BlumGoldwasserPublicKey {
+    /// Encryption algorithm.
+    /// 
+    /// # Arguments
+    ///
+    /// * `plaintext` - Plaintext to encrypt.
+    /// 
+    /// # Reference
+    /// 
+    /// See algorithm 8.56 in "Handbook of Applied Cryptography" by Alfred J. Menezes et al.
     fn encrypt(&self, plaintext: &[u8]) -> Vec<BigUint> {
         let two = BigUint::from(2usize);
 
@@ -85,6 +96,15 @@ impl BlumGoldwasserPrivateKey {
 }
 
 impl PrivateKey for BlumGoldwasserPrivateKey {
+    /// Decryption algorithm.
+    /// 
+    /// # Arguments
+    ///
+    /// * `ciphertext` - Ciphertext to decrypt.
+    /// 
+    /// # Reference
+    /// 
+    /// See algorithm 8.56 in "Handbook of Applied Cryptography" by Alfred J. Menezes et al.
     fn decrypt(&self, ciphertext: &[BigUint]) -> Vec<u8> {
         let one = BigUint::one();
         let two = BigUint::from(2usize);
@@ -130,23 +150,46 @@ impl PrivateKey for BlumGoldwasserPrivateKey {
     }
 }
 
+/// Generates public and private keys.
+/// 
+/// # Arguments
+///
+/// * `byte_size` - Size of public key in bytes.
+/// 
+/// # Reference
+/// 
+/// See algorithm 8.55 in "Handbook of Applied Cryptography" by Alfred J. Menezes et al.
 pub fn generate_keys(byte_size: usize) -> Result<(BlumGoldwasserPublicKey, BlumGoldwasserPrivateKey), Error> {
-    let p_bits = 8 * byte_size.div(2);
-    let q_bits = 8 * (byte_size - byte_size.div(2));
+    if byte_size < 2 {
+        Err(Error::LengthPublicKeyModulus)
+    } else {
+        let p_bits = 8 * byte_size.div(2);
+        let q_bits = 8 * (byte_size - byte_size.div(2));
 
-    let (p, q) = generate_primes(p_bits, q_bits);
+        let (p, q) = generate_primes(p_bits, q_bits);
 
-    match number::extended_euclidean_algorithm(&p, &q) {
-        None => Err(Error::CouldNotGeneratePublicKey),
-        Some((a, b)) => {
-            let n = &p * &q;
-            let public_key = BlumGoldwasserPublicKey { n };
-            let private_key = BlumGoldwasserPrivateKey { p, q, a, b };
-            Ok((public_key, private_key))
+        match number::extended_euclidean_algorithm(&p, &q) {
+            None => Err(Error::CouldNotGenerateKeys),
+            Some((a, b)) => {
+                let n = &p * &q;
+                let public_key = BlumGoldwasserPublicKey { n };
+                let private_key = BlumGoldwasserPrivateKey { p, q, a, b };
+                Ok((public_key, private_key))
+            }
         }
     }
 }
 
+/// Generates primes `p` and `q` for private/public key generation.
+/// 
+/// # Arguments
+///
+/// * `p_bits` - Number of bits for prime `p`.
+/// * `q_bits` - Number of bits for prime `q`.
+/// 
+/// # Reference
+/// 
+/// See algorithm 8.55 in "Handbook of Applied Cryptography" by Alfred J. Menezes et al.
 fn generate_primes(p_bits: usize, q_bits: usize) -> (BigUint, BigUint) {
     fn generate_prime_congruente_3mod4(bit_size: usize) -> (BigUint) {
         let three = BigUint::from(3usize);
@@ -190,7 +233,6 @@ fn to_bitvec(number: &BigUint) -> BitVec {
 mod test {
     use super::*;
     use crate::key::{PublicKey, PrivateKey};
-    use primal;
     use proptest::prelude::*;
 
     proptest! {

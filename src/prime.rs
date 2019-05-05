@@ -13,7 +13,7 @@ use rand::thread_rng;
 /// # extern crate num_bigint;
 /// # fn main() {
 /// use num_bigint::BigUint;
-/// use probabilistic_pubkey::prime;
+/// use probabilisticpubkey::prime;
 /// 
 /// assert_eq!(prime::is_probably_prime(&BigUint::from(128usize)), false);
 /// assert_eq!(prime::is_probably_prime(&BigUint::from(2969usize)), true);
@@ -233,13 +233,6 @@ mod test {
     use num_traits::Zero;
     use primal;    
     use proptest::prelude::*;
-
-
-    // #[test] 
-    // fn test_test() {
-    //     generate_prime(2usize);
-    //     assert_eq!(true, true)
-    // }
 
     fn strategy_for_odd_integer(upper_bound: usize) -> impl Strategy<Value = (usize, bool)> {
         let sieve = primal::Sieve::new(upper_bound);
