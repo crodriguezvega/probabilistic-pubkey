@@ -1,4 +1,7 @@
 # probabilisticpubkey
+
+[![Build Status](https://travis-ci.org/crodriguezvega/probabilisticpubkey.svg?branch=master)](https://travis-ci.org/crodriguezvega/probabilisticpubkey)
+
 Probabilistic public-key crypto systems in Rust. Implementations of Goldwasser-Micali and Blum-Goldwasser algorithms as described in chapter 8 of "Handbook of Applied Cryptography" by Alfred J. Menezes et al.
 
 Build:
