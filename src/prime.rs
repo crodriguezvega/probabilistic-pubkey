@@ -7,6 +7,10 @@ use rand::thread_rng;
 
 /// Returns `true` if the input unsigned integer is probably prime.
 ///
+/// # Arguments
+///
+/// * `n` - number to test for primality.
+/// 
 /// # Examples
 ///
 /// ```
@@ -53,6 +57,10 @@ fn is_multiple_of_prime_under_3000(n: &BigUint) -> bool {
 
 /// Fermat primality test.
 ///
+/// # Arguments
+///
+/// * `n` - number to test for primality.
+/// 
 /// # Assumptions:
 /// 
 /// `n` is an odd integer `> 3` and `iterations > 0`.
@@ -89,7 +97,11 @@ fn fermat_primality_test(iterations: usize, n: &BigUint) -> bool {
 }
 
 /// Miller-Rabin probabilistic primality test.
+/// 
+/// # Arguments
 ///
+/// * `n` - number to test for primality.
+/// 
 /// # Assumptions:
 /// 
 /// `n` is an odd integer `> 3` and `iterations > 0`.
@@ -141,7 +153,11 @@ fn miller_rabin_primality_test(iterations: usize, n: &BigUint) -> bool {
 }
 
 /// Generates a random prime number of the given bit size.
+/// 
+/// # Arguments
 ///
+/// * `bit_size` - number of bits of the generated prime.
+/// 
 /// # Assumptions
 /// 
 /// `bit_size > 1`.
@@ -166,6 +182,10 @@ pub fn generate_prime(bit_size: usize) -> BigUint {
 
 /// Generates a random number of the given bit size with the two most significant bits set to 1.
 ///
+/// # Arguments
+///
+/// * `bit_size` - number of bits of the generated number.
+/// 
 /// # Assumptions
 /// 
 /// `bit_size > 1`.

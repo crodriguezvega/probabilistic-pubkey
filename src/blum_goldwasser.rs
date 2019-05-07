@@ -211,12 +211,26 @@ fn generate_primes(p_bits: usize, q_bits: usize) -> (BigUint, BigUint) {
     (p, q)
 }
 
+/// Finds a quadratic residue modulo `n`.
+/// 
+/// # Arguments
+///
+/// * `n` - Modulo `n`.
+/// 
+/// # Reference
+/// 
+/// See algorithm 8.55 in "Handbook of Applied Cryptography" by Alfred J. Menezes et al.
 fn find_quadratic_residue_mod(n: &BigUint) -> BigUint {
     let mut rng = thread_rng();
     let r = rng.gen_biguint_range(&BigUint::one(), &n); 
     r.modpow(&BigUint::from(2usize), n)
 }
 
+/// Converts a `BitSlice` into a `BigUint`.
+/// 
+/// # Arguments
+///
+/// * `bits` - input `BitSlice`.
 fn to_biguint(bits: &BitSlice) -> BigUint {
     let n = bits.iter().fold(0usize, |acc, bit| {
         acc*2 + if bit { 1 } else { 0 } 
@@ -225,6 +239,11 @@ fn to_biguint(bits: &BitSlice) -> BigUint {
     BigUint::from(n)
 }
 
+/// Converts a `BigUint` into a `BitSlice`.
+/// 
+/// # Arguments
+///
+/// * `number` - input `BigUint`.
 fn to_bitvec(number: &BigUint) -> BitVec {
     number.to_bytes_be().into()
 }

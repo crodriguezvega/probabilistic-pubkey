@@ -171,6 +171,15 @@ fn find_pseudosquare_mod(p: &BigUint, q: &BigUint) -> Option<BigUint> {
     number::gauss_algorithm_for_crt(&crt)
 }
 
+/// Finds a quadratic non-residue modulo `n`.
+/// 
+/// # Arguments
+///
+/// * `n` - Module `n`.
+/// 
+/// # Reference
+/// 
+/// See remark 8.54 in "Handbook of Applied Cryptography" by Alfred J. Menezes et al.
 fn find_quadratic_nonresidue_mod(n: &BigUint) -> BigUint {
     let mut rng = thread_rng();
 
