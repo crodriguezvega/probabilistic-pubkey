@@ -49,7 +49,7 @@ impl PublicKey for BlumGoldwasserPublicKey {
         let k = self.n.bits() - 1;
         let h = BigUint::from_usize(k).unwrap().bits() - 1;
 
-        However, I will fix its value so that eaxh u8 is evenly partitioned.
+        However, I will fix its value so that each u8 is evenly partitioned.
         Otherwise, the result of the decryption does not match the input plaintext.
         I don't know what implications this has on the security of the scheme.
         */
