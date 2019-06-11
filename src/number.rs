@@ -199,7 +199,7 @@ pub fn jacobi_symbol(a: &BigUint, n: &BigUint) -> JacobiSymbol {
     }
 }
  
-/// Finds solution to the the simultaneous congruences in the Chinese remainder theorem.
+/// Finds solution to the simultaneous congruences in the Chinese remainder theorem.
 ///
 /// # Arguments
 /// 
