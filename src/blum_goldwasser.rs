@@ -190,6 +190,10 @@ pub fn generate_keys(byte_size: usize) -> Result<(BlumGoldwasserPublicKey, BlumG
 /// # Reference
 /// 
 /// See algorithm 8.55 in "Handbook of Applied Cryptography" by Alfred J. Menezes et al.
+/// 
+/// # Panics
+/// 
+/// Panics if either `p_bits` or `q_bits` is `< 2`.
 fn generate_primes(p_bits: usize, q_bits: usize) -> (BigUint, BigUint) {
     fn generate_prime_congruente_3mod4(bit_size: usize) -> (BigUint) {
         let three = BigUint::from(3usize);
@@ -266,6 +270,18 @@ mod test {
                 },
                 _  => prop_assert_eq!(false, true)
             };
+        }
+
+        #[test]
+        fn test_generate_primes(bit_size in 8usize..32) {
+            let three = BigUint::from(3usize);
+            let four = BigUint::from(4usize);
+            
+            let (p, q) = generate_primes(bit_size, bit_size);
+
+            prop_assert_ne!(&p, &q);
+            prop_assert_eq!(p.mod_floor(&four) == three, true);
+            prop_assert_eq!(q.mod_floor(&four) == three, true);
         }
     }
 }
