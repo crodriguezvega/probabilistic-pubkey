@@ -230,10 +230,6 @@ pub fn jacobi_symbol(a: &BigUint, n: &BigUint) -> JacobiSymbol {
 /// assert_eq!(number::gauss_algorithm_for_crt(&[(&a1, &n1), (&a2, &n2)]), Some(BigUint::from(2173132usize)));
 /// # }
 /// ```
-/// 
-/// # Panics
-/// 
-/// Panics if any value of `n` is not pairwise relatively prime with the others.
 pub fn gauss_algorithm_for_crt(ans: &[(&BigUint, &BigUint)]) -> Option<BigUint> {
     let mut result = BigUint::zero();
     let n: BigUint = ans.iter().map(|item| item.1).product();
