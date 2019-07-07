@@ -243,7 +243,7 @@ fn to_biguint(bits: &BitSlice) -> BigUint {
     BigUint::from(n)
 }
 
-/// Converts a `BigUint` into a `BitSlice`.
+/// Converts a `BigUint` into a `BitVec`.
 /// 
 /// # Arguments
 ///
@@ -282,6 +282,17 @@ mod test {
             prop_assert_ne!(&p, &q);
             prop_assert_eq!(p.mod_floor(&four) == three, true);
             prop_assert_eq!(q.mod_floor(&four) == three, true);
+        }
+
+        #[test]
+        fn test_to_biguint_to_bitvec(arr in prop::array::uniform8(0u8..1u8)) {
+            let mut bits = BitVec::with_capacity(8);
+            arr.iter().for_each(|&bit| bits.push(if bit == 1u8 { true } else { false }));
+
+            let to_number = to_biguint(&bits);
+            let to_bits = to_bitvec(&to_number);
+
+            prop_assert_eq!(to_bits, bits);
         }
     }
 }
