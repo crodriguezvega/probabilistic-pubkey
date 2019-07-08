@@ -287,7 +287,7 @@ mod test {
         #[test]
         fn test_to_biguint_to_bitvec(arr in prop::array::uniform8(0u8..1u8)) {
             let mut bits = BitVec::with_capacity(8);
-            arr.iter().for_each(|&bit| bits.push(if bit == 1u8 { true } else { false }));
+            arr.iter().for_each(|&bit| bits.push(bit == 1u8));
 
             let to_number = to_biguint(&bits);
             let to_bits = to_bitvec(&to_number);
