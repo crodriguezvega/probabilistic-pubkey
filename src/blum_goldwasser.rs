@@ -3,7 +3,9 @@ use crate::key::{PublicKey, PrivateKey};
 use crate::number;
 use crate::prime;
 
-use bitvec::{BitVec, BitSlice, BigEndian};
+use bitvec::order::Msb0;
+use bitvec::vec::BitVec;
+use bitvec::slice::BitSlice;
 use num_bigint::{BigUint, BigInt, RandBigInt, ToBigInt};
 use num_integer::Integer;
 use num_traits::One;
@@ -60,13 +62,13 @@ impl PublicKey for BlumGoldwasserPublicKey {
         let mask = BigUint::from(h.pow(2) - 1);
 
         let mut ciphertext = Vec::with_capacity(8 * plaintext.len());
-        let bits: BitVec<BigEndian, u8> = plaintext.into();
+        let bits = BitVec::<Msb0, u8>::from_vec(plaintext.to_vec());
 
         let mut chunks = bits.chunks(h);
         while let Some(chunk) = chunks.next() {
             x = x.modpow(&two, &self.n);
             let p = &x & &mask;            
-            let m = to_biguint(&chunk);
+            let m = to_biguint(chunk);
             let c = p.bitxor(&m);
             ciphertext.push(c);
         }
@@ -133,7 +135,7 @@ impl PrivateKey for BlumGoldwasserPrivateKey {
                 let _n = n.to_bigint().unwrap();
                 let mut x = (v * &self.a * _p + u * &self.b * _q).mod_floor(&_n).to_biguint().unwrap();
 
-                let mut bits: BitVec<BigEndian, u8> = BitVec::new();
+                let mut bits: BitVec<Msb0, u8> = BitVec::new();
                 for c in &ciphertext[..len] {
                     x = x.modpow(&two, &n);
                     let p = &x & &mask;
@@ -141,9 +143,9 @@ impl PrivateKey for BlumGoldwasserPrivateKey {
 
                     let bit_vec = to_bitvec(&m);
                     let chunk = bit_vec.split_at(bit_vec.len() - h); 
-                    for bit in chunk.1 { bits.push(bit); }
+                    for bit in chunk.1 { bits.push(*bit); }
                 }
-                let plaintext: Vec<u8> = bits.into();
+                let plaintext: Vec<u8> = bits.into_vec();
                 plaintext
             }
         }
@@ -195,7 +197,7 @@ pub fn generate_keys(byte_size: usize) -> Result<(BlumGoldwasserPublicKey, BlumG
 /// 
 /// Panics if either `p_bits` or `q_bits` is `< 2`.
 fn generate_primes(p_bits: usize, q_bits: usize) -> (BigUint, BigUint) {
-    fn generate_prime_congruente_3mod4(bit_size: usize) -> (BigUint) {
+    fn generate_prime_congruente_3mod4(bit_size: usize) -> BigUint {
         let three = BigUint::from(3usize);
         let four = BigUint::from(4usize);
         let mut prime = prime::generate_prime(bit_size);
@@ -235,9 +237,9 @@ fn find_quadratic_residue_mod(n: &BigUint) -> BigUint {
 /// # Arguments
 ///
 /// * `bits` - input `BitSlice`.
-fn to_biguint(bits: &BitSlice) -> BigUint {
+fn to_biguint(bits: &BitSlice<Msb0, u8>) -> BigUint {
     let n = bits.iter().fold(0usize, |acc, bit| {
-        acc*2 + if bit { 1 } else { 0 } 
+        acc*2 + if *bit { 1 } else { 0 } 
     });
 
     BigUint::from(n)
@@ -248,8 +250,8 @@ fn to_biguint(bits: &BitSlice) -> BigUint {
 /// # Arguments
 ///
 /// * `number` - input `BigUint`.
-fn to_bitvec(number: &BigUint) -> BitVec {
-    number.to_bytes_be().into()
+fn to_bitvec(number: &BigUint) -> BitVec<Msb0, u8> {
+    BitVec::<Msb0, u8>::from_vec(number.to_bytes_be())
 }
 
 #[cfg(test)]

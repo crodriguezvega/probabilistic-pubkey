@@ -15,7 +15,6 @@ extern crate rand;
 #[cfg(test)]
 extern crate primal;
 #[cfg(test)]
-#[macro_use]
 extern crate proptest;
 
 /// Number theoric functions.

@@ -3,7 +3,8 @@ use crate::key::{PublicKey, PrivateKey};
 use crate::number;
 use crate::prime;
 
-use bitvec::{BitVec, BigEndian};
+use bitvec::order::Msb0;
+use bitvec::vec::BitVec;
 use num_bigint::{BigUint, RandBigInt};
 use num_integer::Integer;
 use num_traits::One;
@@ -50,7 +51,8 @@ impl PublicKey for GoldwasserMicaliPublicKey {
 
         let mut rng = thread_rng();
         let mut ciphertext = Vec::with_capacity(8 * plaintext.len());
-        let bits: BitVec<BigEndian, u8> = plaintext.into();
+        let bits = BitVec::<Msb0, u8>::from_vec(plaintext.to_vec());
+
         for m in bits {
             let x = rng.gen_biguint_range(&one, &self.n);
             let x_square_mod = x.modpow(&two, &self.n);
@@ -87,7 +89,7 @@ impl PrivateKey for GoldwasserMicaliPrivateKey {
     /// 
     /// See algorithm 8.51 in "Handbook of Applied Cryptography" by Alfred J. Menezes et al.
     fn decrypt(&self, ciphertext: &[BigUint]) -> Vec<u8> {
-        let mut bits: BitVec<BigEndian, u8> = BitVec::with_capacity(ciphertext.len());
+        let mut bits: BitVec<Msb0, u8> = BitVec::with_capacity(ciphertext.len());
         
         for c in ciphertext {
             let m = match number::jacobi_symbol(&c, &self.p) {
